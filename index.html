@@ -270,8 +270,14 @@
 </head>
 <body class="min-h-screen flex flex-col justify-between items-center p-3 sm:p-6 relative">
 
-    <!-- Background Audio Element for Bruno_Mars.mp3 -->
-    <audio id="bg-audio" loop>
+    <!-- 1. AUDIO BACKSOUND LO-FI (Di Header Atas) -->
+    <audio id="lofi-audio" loop>
+        <source src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf756.mp3?filename=lofi-study-112191.mp3" type="audio/mpeg">
+        Browser kamu tidak mendukung pemutar audio.
+    </audio>
+
+    <!-- 2. AUDIO KASET HALAMAN 3 (Bruno_Mars.mp3) -->
+    <audio id="cassette-audio" loop>
         <source src="Bruno_Mars.mp3" type="audio/mpeg">
         Browser kamu tidak mendukung pemutar audio.
     </audio>
@@ -279,7 +285,7 @@
     <!-- Floating Particles Canvas Container -->
     <div id="heart-container" class="fixed inset-0 pointer-events-none z-50"></div>
 
-    <!-- SYNCHRONIZED LYRICS POPUP (Hanya muncul jika tombol Play di Header diklik) -->
+    <!-- SYNCHRONIZED LYRICS POPUP (Hanya muncul saat kaset Bruno_Mars.mp3 diputar di halaman 3) -->
     <div id="lyrics-overlay" class="fixed bottom-6 right-6 z-40 bg-white/90 backdrop-blur-md border-2 border-pink-300 p-4 rounded-2xl shadow-xl w-80 sm:w-96 hidden opacity-0 transform translate-y-4">
         <div class="flex justify-between items-center mb-2 border-b border-pink-100 pb-1">
             <div class="flex items-center space-x-2">
@@ -290,7 +296,7 @@
         </div>
         <div id="lyrics-container" class="text-center py-4 min-h-[80px] flex items-center justify-center">
             <p id="lyrics-text" class="font-handwriting text-2xl text-pink-600 font-bold transition-all duration-300">
-                Tekan tombol "Play Music" di atas untuk mulai... ✨
+                Putar kaset musik di halaman 3 untuk lirik berjalan... ✨
             </p>
         </div>
         <div class="w-full bg-pink-100 h-1.5 rounded-full overflow-hidden mt-1">
@@ -305,10 +311,10 @@
             <h1 class="font-title text-2xl sm:text-3xl text-pink-700 font-bold tracking-wide">Our Story Scrapbook</h1>
         </div>
         <div class="flex items-center space-x-2 sm:space-x-3">
-            <!-- Music Player Toggle Button (Header - Memunculkan Lirik Sinkron) -->
-            <button id="music-btn" onclick="toggleAudioFromHeader()" class="bg-white/80 backdrop-blur hover:bg-white text-pink-600 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full shadow-md text-xs sm:text-sm font-semibold flex items-center transition border border-pink-200">
+            <!-- Music Player Toggle Button (Header Atas - Lo-Fi Instrumental) -->
+            <button id="music-btn" onclick="toggleLofiAudio()" class="bg-white/80 backdrop-blur hover:bg-white text-pink-600 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full shadow-md text-xs sm:text-sm font-semibold flex items-center transition border border-pink-200">
                 <i class="fa-solid fa-music mr-1.5 text-pink-500" id="music-icon"></i>
-                <span id="music-text">Play Music</span>
+                <span id="music-text">Play Lo-Fi</span>
             </button>
             <!-- Particles Toggle Button -->
             <button id="particles-btn" onclick="toggleParticles()" class="bg-white/80 backdrop-blur hover:bg-white text-pink-600 p-2 sm:px-3 sm:py-2 rounded-full shadow-md text-xs sm:text-sm font-semibold transition border border-pink-200" title="Toggle Hearts">
@@ -514,7 +520,7 @@
                     </div>
                 `
             },
-            // SPREAD 3: Interactive Notes & music
+            // SPREAD 3: Interactive Notes & music (Kaset Bruno_Mars.mp3)
             {
                 left: `
                     <div class="h-full flex flex-col justify-between paper-texture p-4 rounded-l-xl relative">
@@ -554,10 +560,10 @@
 
                         <div>
                             <h3 class="font-handwriting text-3xl text-pink-700 font-bold">🎵 Count On Me</h3>
-                            <p class="font-sans-custom text-xs text-gray-500">Putar lagunya yuk!</p>
+                            <p class="font-sans-custom text-xs text-gray-500">Putar kaset lagunya yuk!</p>
                         </div>
 
-                        <!-- Interactive Music Cassette Box (Tombol dalam scrapbook - Standar) -->
+                        <!-- Interactive Music Cassette Box (Tombol Kaset Halaman 3 - Memutar Bruno_Mars.mp3 & Lirik Pop-up) -->
                         <div class="bg-white p-4 rounded-2xl shadow-md border-2 border-pink-200 my-auto text-center relative overflow-hidden">
                             <div class="flex justify-center items-center space-x-4 mb-3">
                                 <div class="w-10 h-10 rounded-full border-4 border-pink-300 flex items-center justify-center animate-spin" id="cassette-wheel-1" style="animation-duration: 4s; animation-play-state: paused;">
@@ -573,9 +579,9 @@
                             <h4 class="font-handwriting text-2xl text-gray-800 font-bold">Count On Me.mp3</h4>
                             <p class="font-sans-custom text-xs text-pink-500 mb-3">Local Audio Player</p>
                             
-                            <button onclick="toggleAudioStandard()" class="bg-pink-500 hover:bg-pink-600 text-white font-bold px-6 py-2 rounded-full shadow transition flex items-center justify-center mx-auto space-x-2">
-                                <i class="fa-solid fa-play" id="card-play-icon"></i>
-                                <span id="card-play-text">Putar Lagu</span>
+                            <button onclick="toggleCassetteAudio()" class="bg-pink-500 hover:bg-pink-600 text-white font-bold px-6 py-2 rounded-full shadow transition flex items-center justify-center mx-auto space-x-2">
+                                <i class="fa-solid fa-play" id="cassette-play-icon"></i>
+                                <span id="cassette-play-text">Putar Kaset</span>
                             </button>
                         </div>
 
@@ -591,57 +597,59 @@
         ];
 
         let currentPageIndex = 0;
-        let isPlaying = false;
+        let isLofiPlaying = false;
+        let isCassettePlaying = false;
 
         /* ===================================================
-           2. DATA LIRIK SINKRON (Disesuaikan timing-nya agar lebih pas/lambat)[cite: 2]
+           2. DATA LIRIK SINKRON (Count on Me - Bruno Mars)
            =================================================== */
         const lyricsData = [
             { time: 0, text: "🎵 (Intro / Instrumental) 🎶" },
-            { time: 14, text: "If you ever find yourself stuck in the middle of the sea 🌊" },
-            { time: 21, text: "I'll sail the world to find you ⛵" },
-            { time: 27, text: "If you ever find yourself lost in the dark and you can't see 🌑" },
-            { time: 35, text: "I'll be the light to guide you ✨" },
-            { time: 42, text: "Find out what we're made of..." },
-            { time: 46, text: "When we are called to help our friends in need 🤝" },
-            { time: 52, text: "You can count on me like one two three 🎵" },
-            { time: 59, text: "I'll be there!" },
-            { time: 63, text: "And I know when I need it I can count on you like four three two" },
-            { time: 72, text: "You'll be there!" },
-            { time: 76, text: "'Cause that's what friends are supposed to do, oh yeah 💖" },
-            { time: 85, text: "Whoa, whoa... Oh, oh... Yeah, yeah 🎶" },
-            { time: 104, text: "If you tossin' and you're turnin' and you just can't fall asleep 🌙" },
-            { time: 113, text: "I'll sing a song beside you 🎶" },
-            { time: 120, text: "And if you ever forget how much you really mean to me 💕" },
-            { time: 128, text: "Everyday I will remind you ✨" },
-            { time: 136, text: "Find out what we're made of..." },
-            { time: 140, text: "When we are called to help our friends in need 🤝" },
-            { time: 146, text: "You can count on me like one two three 🎵" },
-            { time: 153, text: "I'll be there!" },
-            { time: 157, text: "And I know when I need it I can count on you like four three two" },
-            { time: 166, text: "You'll be there!" },
-            { time: 170, text: "'Cause that's what friends are supposed to do, oh yeah 🌟" },
-            { time: 179, text: "Oh, oh... Yeah, yeah..." },
-            { time: 191, text: "You'll always have my shoulder when you cry 🫂" },
-            { time: 198, text: "I'll never let go, never say goodbye ❤️" },
-            { time: 206, text: "You know you can count on me like one two three..." },
-            { time: 213, text: "I'll be there!" },
-            { time: 218, text: "And I know when I need it I can count on you like four three two" },
-            { time: 226, text: "And you'll be there!" },
-            { time: 231, text: "'Cause that's what friends are supposed to do, oh yeah ✨" },
-            { time: 240, text: "You can count on me 'cause I can count on you 💖" },
-            { time: 252, text: "✨ (Song Outro) 🌸" }
+            { time: 5, text: "If you ever find yourself stuck in the middle of the sea 🌊" },
+            { time: 11, text: "I'll sail the world to find you ⛵" },
+            { time: 17, text: "If you ever find yourself lost in the dark and you can't see 🌑" },
+            { time: 24, text: "I'll be the light to guide you ✨" },
+            { time: 30, text: "Find out what we're made of..." },
+            { time: 34, text: "When we are called to help our friends in need 🤝" },
+            { time: 39, text: "You can count on me like one two three 🎵" },
+            { time: 45, text: "I'll be there!" },
+            { time: 49, text: "And I know when I need it I can count on you like four three two" },
+            { time: 57, text: "You'll be there!" },
+            { time: 60, text: "'Cause that's what friends are supposed to do, oh yeah 💖" },
+            { time: 69, text: "Whoa, whoa... Oh, oh... Yeah, yeah 🎶" },
+            { time: 85, text: "If you tossin' and you're turnin' and you just can't fall asleep 🌙" },
+            { time: 93, text: "I'll sing a song beside you 🎶" },
+            { time: 100, text: "And if you ever forget how much you really mean to me 💕" },
+            { time: 108, text: "Everyday I will remind you ✨" },
+            { time: 115, text: "Find out what we're made of..." },
+            { time: 119, text: "When we are called to help our friends in need 🤝" },
+            { time: 125, text: "You can count on me like one two three 🎵" },
+            { time: 131, text: "I'll be there!" },
+            { time: 135, text: "And I know when I need it I can count on you like four three two" },
+            { time: 144, text: "You'll be there!" },
+            { time: 148, text: "'Cause that's what friends are supposed to do, oh yeah 🌟" },
+            { time: 156, text: "Oh, oh... Yeah, yeah..." },
+            { time: 168, text: "You'll always have my shoulder when you cry 🫂" },
+            { time: 175, text: "I'll never let go, never say goodbye ❤️" },
+            { time: 182, text: "You know you can count on me like one two three..." },
+            { time: 189, text: "I'll be there!" },
+            { time: 193, text: "And I know when I need it I can count on you like four three two" },
+            { time: 201, text: "And you'll be there!" },
+            { time: 206, text: "'Cause that's what friends are supposed to do, oh yeah ✨" },
+            { time: 215, text: "You can count on me 'cause I can count on you 💖" },
+            { time: 225, text: "✨ (Song Outro) 🌸" }
         ];
 
-        const audio = document.getElementById('bg-audio');
+        const lofiAudio = document.getElementById('lofi-audio');
+        const cassetteAudio = document.getElementById('cassette-audio');
 
-        // Sinkronisasi Lirik dan Progress Bar Berdasarkan Detik Lagu
-        audio.addEventListener('timeupdate', () => {
-            if (!audio.duration) return;
-            const currentTime = audio.currentTime;
+        // Sinkronisasi Lirik dan Progress Bar Berdasarkan Detik Audio Kaset
+        cassetteAudio.addEventListener('timeupdate', () => {
+            if (!cassetteAudio.duration) return;
+            const currentTime = cassetteAudio.currentTime;
             
             // Update Progress Bar
-            const progressPercent = (currentTime / audio.duration) * 100;
+            const progressPercent = (currentTime / cassetteAudio.duration) * 100;
             const progressBar = document.getElementById('song-progress');
             if (progressBar) progressBar.style.width = progressPercent + '%';
 
@@ -747,74 +755,64 @@
            6. AUDIO CONTROLS & LYRICS POPUP LOGIC
            =================================================== */
         
-        // Tombol Play di Header LUAR (Memutar lagu + Memunculkan kotak lirik sinkron)
-        function toggleAudioFromHeader() {
+        // Tombol Lo-Fi di Header Atas (Musik Backsound Instrumental)
+        function toggleLofiAudio() {
             const musicIcon = document.getElementById('music-icon');
             const musicText = document.getElementById('music-text');
-            const cardPlayIcon = document.getElementById('card-play-icon');
-            const cardPlayText = document.getElementById('card-play-text');
-            const wheel1 = document.getElementById('cassette-wheel-1');
-            const wheel2 = document.getElementById('cassette-wheel-2');
-            const overlay = document.getElementById('lyrics-overlay');
 
-            if (isPlaying) {
-                audio.pause();
-                isPlaying = false;
+            if (isLofiPlaying) {
+                lofiAudio.pause();
+                isLofiPlaying = false;
                 musicIcon.className = "fa-solid fa-music mr-1.5 text-pink-500";
-                musicText.innerText = "Play Music";
-                if (cardPlayIcon) cardPlayIcon.className = "fa-solid fa-play";
-                if (cardPlayText) cardPlayText.innerText = "Putar Lagu";
-                if (wheel1) wheel1.style.animationPlayState = 'paused';
-                if (wheel2) wheel2.style.animationPlayState = 'paused';
-                closeLyricsOverlay();
+                musicText.innerText = "Play Lo-Fi";
             } else {
-                audio.play().then(() => {
-                    isPlaying = true;
+                // Jika kaset Bruno Mars sedang bunyi, matikan dulu agar tidak tabrakan
+                if (isCassettePlaying) {
+                    toggleCassetteAudio();
+                }
+                lofiAudio.play().then(() => {
+                    isLofiPlaying = true;
                     musicIcon.className = "fa-solid fa-pause mr-1.5 text-pink-500";
-                    musicText.innerText = "Pause Music";
-                    if (cardPlayIcon) cardPlayIcon.className = "fa-solid fa-pause";
-                    if (cardPlayText) cardPlayText.innerText = "Jeda Lagu";
-                    if (wheel1) wheel1.style.animationPlayState = 'running';
-                    if (wheel2) wheel2.style.animationPlayState = 'running';
-
-                    // Munculkan kotak lirik di pojok bawah
-                    overlay.classList.remove('hidden');
-                    setTimeout(() => {
-                        overlay.classList.remove('opacity-0', 'translate-y-4');
-                    }, 50);
+                    musicText.innerText = "Pause Lo-Fi";
                 }).catch(e => {
-                    alert("Gagal memutar lagu. Pastikan file 'Bruno_Mars.mp3' ada di dalam folder yang sama!");
+                    alert("Gagal memutar musik Lo-Fi.");
                 });
             }
         }
 
-        // Tombol Play di Dalam Scrapbook Halaman 3 (Hanya Putar/Pause lagu TANPA memunculkan kotak lirik)
-        function toggleAudioStandard() {
-            const musicIcon = document.getElementById('music-icon');
-            const musicText = document.getElementById('music-text');
-            const cardPlayIcon = document.getElementById('card-play-icon');
-            const cardPlayText = document.getElementById('card-play-text');
+        // Tombol Kaset di Halaman 3 (Memutar Bruno_Mars.mp3 + Memunculkan Pop-up Lirik)
+        function toggleCassetteAudio() {
+            const cassettePlayIcon = document.getElementById('cassette-play-icon');
+            const cassettePlayText = document.getElementById('cassette-play-text');
             const wheel1 = document.getElementById('cassette-wheel-1');
             const wheel2 = document.getElementById('cassette-wheel-2');
+            const overlay = document.getElementById('lyrics-overlay');
 
-            if (isPlaying) {
-                audio.pause();
-                isPlaying = false;
-                musicIcon.className = "fa-solid fa-music mr-1.5 text-pink-500";
-                musicText.innerText = "Play Music";
-                if (cardPlayIcon) cardPlayIcon.className = "fa-solid fa-play";
-                if (cardPlayText) cardPlayText.innerText = "Putar Lagu";
+            if (isCassettePlaying) {
+                cassetteAudio.pause();
+                isCassettePlaying = false;
+                if (cassettePlayIcon) cassettePlayIcon.className = "fa-solid fa-play";
+                if (cassettePlayText) cassettePlayText.innerText = "Putar Kaset";
                 if (wheel1) wheel1.style.animationPlayState = 'paused';
                 if (wheel2) wheel2.style.animationPlayState = 'paused';
+                closeLyricsOverlay();
             } else {
-                audio.play().then(() => {
-                    isPlaying = true;
-                    musicIcon.className = "fa-solid fa-pause mr-1.5 text-pink-500";
-                    musicText.innerText = "Pause Music";
-                    if (cardPlayIcon) cardPlayIcon.className = "fa-solid fa-pause";
-                    if (cardPlayText) cardPlayText.innerText = "Jeda Lagu";
+                // Jika lo-fi backsound sedang bunyi, matikan dulu
+                if (isLofiPlaying) {
+                    toggleLofiAudio();
+                }
+                cassetteAudio.play().then(() => {
+                    isCassettePlaying = true;
+                    if (cassettePlayIcon) cassettePlayIcon.className = "fa-solid fa-pause";
+                    if (cassettePlayText) cassettePlayText.innerText = "Jeda Kaset";
                     if (wheel1) wheel1.style.animationPlayState = 'running';
                     if (wheel2) wheel2.style.animationPlayState = 'running';
+
+                    // Munculkan kotak lirik pop-up di pojok bawah
+                    overlay.classList.remove('hidden');
+                    setTimeout(() => {
+                        overlay.classList.remove('opacity-0', 'translate-y-4');
+                    }, 50);
                 }).catch(e => {
                     alert("Gagal memutar lagu. Pastikan file 'Bruno_Mars.mp3' ada di dalam folder yang sama!");
                 });
