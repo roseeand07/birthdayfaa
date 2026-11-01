@@ -245,6 +245,11 @@
             background: #ffffff;
         }
 
+        /* Synchronized Lyrics Overlay Styles */
+        #lyrics-overlay {
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
         /* Mobile Adjustments */
         @media (max-width: 768px) {
             .book-container {
@@ -265,7 +270,7 @@
 </head>
 <body class="min-h-screen flex flex-col justify-between items-center p-3 sm:p-6 relative">
 
-    <!-- Background Audio Element for mp3 -->
+    <!-- Background Audio Element for Bruno_Mars.mp3 -->
     <audio id="bg-audio" loop>
         <source src="Bruno_Mars.mp3" type="audio/mpeg">
         Browser kamu tidak mendukung pemutar audio.
@@ -274,6 +279,25 @@
     <!-- Floating Particles Canvas Container -->
     <div id="heart-container" class="fixed inset-0 pointer-events-none z-50"></div>
 
+    <!-- SYNCHRONIZED LYRICS POPUP (Hanya muncul jika tombol Play di Header diklik) -->
+    <div id="lyrics-overlay" class="fixed bottom-6 right-6 z-40 bg-white/90 backdrop-blur-md border-2 border-pink-300 p-4 rounded-2xl shadow-xl w-80 sm:w-96 hidden opacity-0 transform translate-y-4">
+        <div class="flex justify-between items-center mb-2 border-b border-pink-100 pb-1">
+            <div class="flex items-center space-x-2">
+                <span class="animate-pulse">🎶</span>
+                <span class="font-bold text-pink-700 font-sans-custom text-xs">Count on Me - Bruno Mars</span>
+            </div>
+            <button onclick="closeLyricsOverlay()" class="text-gray-400 hover:text-gray-600 text-xs font-bold px-1.5 py-0.5 rounded bg-pink-50">✕</button>
+        </div>
+        <div id="lyrics-container" class="text-center py-4 min-h-[80px] flex items-center justify-center">
+            <p id="lyrics-text" class="font-handwriting text-2xl text-pink-600 font-bold transition-all duration-300">
+                Tekan tombol "Play Music" di atas untuk mulai... ✨
+            </p>
+        </div>
+        <div class="w-full bg-pink-100 h-1.5 rounded-full overflow-hidden mt-1">
+            <div id="song-progress" class="bg-pink-500 h-full w-0 transition-all duration-200"></div>
+        </div>
+    </div>
+
     <!-- Header Controls -->
     <header class="w-full max-w-5xl flex justify-between items-center z-30 mb-2 sm:mb-4">
         <div class="flex items-center space-x-2">
@@ -281,8 +305,8 @@
             <h1 class="font-title text-2xl sm:text-3xl text-pink-700 font-bold tracking-wide">Our Story Scrapbook</h1>
         </div>
         <div class="flex items-center space-x-2 sm:space-x-3">
-            <!-- Music Player Toggle Button -->
-            <button id="music-btn" onclick="toggleAudio()" class="bg-white/80 backdrop-blur hover:bg-white text-pink-600 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full shadow-md text-xs sm:text-sm font-semibold flex items-center transition border border-pink-200">
+            <!-- Music Player Toggle Button (Header - Memunculkan Lirik Sinkron) -->
+            <button id="music-btn" onclick="toggleAudioFromHeader()" class="bg-white/80 backdrop-blur hover:bg-white text-pink-600 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full shadow-md text-xs sm:text-sm font-semibold flex items-center transition border border-pink-200">
                 <i class="fa-solid fa-music mr-1.5 text-pink-500" id="music-icon"></i>
                 <span id="music-text">Play Music</span>
             </button>
@@ -375,7 +399,7 @@
     <!-- JAVASCRIPT LOGIC -->
     <script>
         /* ===================================================
-           1. SCRAPBOOK DATA & CONTENT PAGES (Updated with faa.jpeg)
+           1. SCRAPBOOK DATA & CONTENT PAGES
            =================================================== */
         const pagesData = [
             // SPREAD 1: Cover & Intro Letter
@@ -490,7 +514,7 @@
                     </div>
                 `
             },
-            // SPREAD 3: Interactive NOtes & music
+            // SPREAD 3: Interactive Notes & music
             {
                 left: `
                     <div class="h-full flex flex-col justify-between paper-texture p-4 rounded-l-xl relative">
@@ -533,7 +557,7 @@
                             <p class="font-sans-custom text-xs text-gray-500">Putar lagunya yuk!</p>
                         </div>
 
-                        <!-- Interactive Music Cassette Box -->
+                        <!-- Interactive Music Cassette Box (Tombol dalam scrapbook - Standar) -->
                         <div class="bg-white p-4 rounded-2xl shadow-md border-2 border-pink-200 my-auto text-center relative overflow-hidden">
                             <div class="flex justify-center items-center space-x-4 mb-3">
                                 <div class="w-10 h-10 rounded-full border-4 border-pink-300 flex items-center justify-center animate-spin" id="cassette-wheel-1" style="animation-duration: 4s; animation-play-state: paused;">
@@ -549,7 +573,7 @@
                             <h4 class="font-handwriting text-2xl text-gray-800 font-bold">Count On Me.mp3</h4>
                             <p class="font-sans-custom text-xs text-pink-500 mb-3">Local Audio Player</p>
                             
-                            <button onclick="toggleAudio()" class="bg-pink-500 hover:bg-pink-600 text-white font-bold px-6 py-2 rounded-full shadow transition flex items-center justify-center mx-auto space-x-2">
+                            <button onclick="toggleAudioStandard()" class="bg-pink-500 hover:bg-pink-600 text-white font-bold px-6 py-2 rounded-full shadow transition flex items-center justify-center mx-auto space-x-2">
                                 <i class="fa-solid fa-play" id="card-play-icon"></i>
                                 <span id="card-play-text">Putar Lagu</span>
                             </button>
@@ -570,7 +594,79 @@
         let isPlaying = false;
 
         /* ===================================================
-           2. ENVELOPE OPENING STAGE LOGIC
+           2. DATA LIRIK SINKRON (Count on Me - Bruno Mars)[cite: 2]
+           =================================================== */
+        const lyricsData = [
+            { time: 0, text: "🎵 (Intro / Instrumental) 🎶" },
+            { time: 10, text: "If you ever find yourself stuck in the middle of the sea 🌊" },
+            { time: 16, text: "I'll sail the world to find you ⛵" },
+            { time: 21, text: "If you ever find yourself lost in the dark and you can't see 🌑" },
+            { time: 28, text: "I'll be the light to guide you ✨" },
+            { time: 34, text: "Find out what we're made of..." },
+            { time: 38, text: "When we are called to help our friends in need 🤝" },
+            { time: 43, text: "You can count on me like one two three 🎵" },
+            { time: 49, text: "I'll be there!" },
+            { time: 53, text: "And I know when I need it I can count on you like four three two" },
+            { time: 61, text: "You'll be there!" },
+            { time: 64, text: "'Cause that's what friends are supposed to do, oh yeah 💖" },
+            { time: 73, text: "Whoa, whoa... Oh, oh... Yeah, yeah 🎶" },
+            { time: 89, text: "If you tossin' and you're turnin' and you just can't fall asleep 🌙" },
+            { time: 97, text: "I'll sing a song beside you 🎶" },
+            { time: 103, text: "And if you ever forget how much you really mean to me 💕" },
+            { time: 110, text: "Everyday I will remind you ✨" },
+            { time: 117, text: "Find out what we're made of..." },
+            { time: 121, text: "When we are called to help our friends in need 🤝" },
+            { time: 126, text: "You can count on me like one two three 🎵" },
+            { time: 132, text: "I'll be there!" },
+            { time: 136, text: "And I know when I need it I can count on you like four three two" },
+            { time: 144, text: "You'll be there!" },
+            { time: 147, text: "'Cause that's what friends are supposed to do, oh yeah 🌟" },
+            { time: 156, text: "Oh, oh... Yeah, yeah..." },
+            { time: 165, text: "You'll always have my shoulder when you cry 🫂" },
+            { time: 171, text: "I'll never let go, never say goodbye ❤️" },
+            { time: 178, text: "You know you can count on me like one two three..." },
+            { time: 185, text: "I'll be there!" },
+            { time: 189, text: "And I know when I need it I can count on you like four three two" },
+            { time: 197, text: "And you'll be there!" },
+            { time: 201, text: "'Cause that's what friends are supposed to do, oh yeah ✨" },
+            { time: 209, text: "You can count on me 'cause I can count on you 💖" },
+            { time: 220, text: "✨ (Song Outro) 🌸" }
+        ];
+
+        const audio = document.getElementById('bg-audio');
+
+        // Sinkronisasi Lirik dan Progress Bar Berdasarkan Detik Lagu
+        audio.addEventListener('timeupdate', () => {
+            if (!audio.duration) return;
+            const currentTime = audio.currentTime;
+            
+            // Update Progress Bar
+            const progressPercent = (currentTime / audio.duration) * 100;
+            const progressBar = document.getElementById('song-progress');
+            if (progressBar) progressBar.style.width = progressPercent + '%';
+
+            // Cari Lirik yang Sesuai dengan Waktu Lagu
+            let currentLyric = lyricsData[0].text;
+            for (let i = 0; i < lyricsData.length; i++) {
+                if (currentTime >= lyricsData[i].time) {
+                    currentLyric = lyricsData[i].text;
+                } else {
+                    break;
+                }
+            }
+
+            const lyricsTextEl = document.getElementById('lyrics-text');
+            if (lyricsTextEl && lyricsTextEl.innerText !== currentLyric) {
+                lyricsTextEl.style.opacity = '0';
+                setTimeout(() => {
+                    lyricsTextEl.innerText = currentLyric;
+                    lyricsTextEl.style.opacity = '1';
+                }, 150);
+            }
+        });
+
+        /* ===================================================
+           3. ENVELOPE OPENING STAGE LOGIC
            =================================================== */
         function openEnvelope() {
             const envelope = document.getElementById('envelope');
@@ -597,7 +693,7 @@
         }
 
         /* ===================================================
-           3. FLIPBOOK PAGE NAVIGATION LOGIC
+           4. FLIPBOOK PAGE NAVIGATION LOGIC
            =================================================== */
         function renderPages() {
             const leftPage = document.getElementById('left-page');
@@ -630,7 +726,7 @@
         }
 
         /* ===================================================
-           4. REVEAL CARD TOGGLE
+           5. REVEAL CARD TOGGLE
            =================================================== */
         function toggleReveal(cardElement) {
             const hideSpan = cardElement.querySelector('.card-hide');
@@ -648,10 +744,52 @@
         }
 
         /* ===================================================
-           5. AUDIO PLAYER LOGIC (.mp3)
+           6. AUDIO CONTROLS & LYRICS POPUP LOGIC
            =================================================== */
-        function toggleAudio() {
-            const audio = document.getElementById('bg-audio');
+        
+        // Tombol Play di Header LUAR (Memutar lagu + Memunculkan kotak lirik sinkron)
+        function toggleAudioFromHeader() {
+            const musicIcon = document.getElementById('music-icon');
+            const musicText = document.getElementById('music-text');
+            const cardPlayIcon = document.getElementById('card-play-icon');
+            const cardPlayText = document.getElementById('card-play-text');
+            const wheel1 = document.getElementById('cassette-wheel-1');
+            const wheel2 = document.getElementById('cassette-wheel-2');
+            const overlay = document.getElementById('lyrics-overlay');
+
+            if (isPlaying) {
+                audio.pause();
+                isPlaying = false;
+                musicIcon.className = "fa-solid fa-music mr-1.5 text-pink-500";
+                musicText.innerText = "Play Music";
+                if (cardPlayIcon) cardPlayIcon.className = "fa-solid fa-play";
+                if (cardPlayText) cardPlayText.innerText = "Putar Lagu";
+                if (wheel1) wheel1.style.animationPlayState = 'paused';
+                if (wheel2) wheel2.style.animationPlayState = 'paused';
+                closeLyricsOverlay();
+            } else {
+                audio.play().then(() => {
+                    isPlaying = true;
+                    musicIcon.className = "fa-solid fa-pause mr-1.5 text-pink-500";
+                    musicText.innerText = "Pause Music";
+                    if (cardPlayIcon) cardPlayIcon.className = "fa-solid fa-pause";
+                    if (cardPlayText) cardPlayText.innerText = "Jeda Lagu";
+                    if (wheel1) wheel1.style.animationPlayState = 'running';
+                    if (wheel2) wheel2.style.animationPlayState = 'running';
+
+                    // Munculkan kotak lirik di pojok bawah
+                    overlay.classList.remove('hidden');
+                    setTimeout(() => {
+                        overlay.classList.remove('opacity-0', 'translate-y-4');
+                    }, 50);
+                }).catch(e => {
+                    alert("Gagal memutar lagu. Pastikan file 'Bruno_Mars.mp3' ada di dalam folder yang sama!");
+                });
+            }
+        }
+
+        // Tombol Play di Dalam Scrapbook Halaman 3 (Hanya Putar/Pause lagu TANPA memunculkan kotak lirik)
+        function toggleAudioStandard() {
             const musicIcon = document.getElementById('music-icon');
             const musicText = document.getElementById('music-text');
             const cardPlayIcon = document.getElementById('card-play-icon');
@@ -678,13 +816,21 @@
                     if (wheel1) wheel1.style.animationPlayState = 'running';
                     if (wheel2) wheel2.style.animationPlayState = 'running';
                 }).catch(e => {
-                    alert("Gagal memutar lagu. Pastikan file 'mp3' ada di dalam folder yang sama!");
+                    alert("Gagal memutar lagu. Pastikan file 'Bruno_Mars.mp3' ada di dalam folder yang sama!");
                 });
             }
         }
 
+        function closeLyricsOverlay() {
+            const overlay = document.getElementById('lyrics-overlay');
+            overlay.classList.add('opacity-0', 'translate-y-4');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+            }, 400);
+        }
+
         /* ===================================================
-           6. FLOATING PARTICLES LOGIC
+           7. FLOATING PARTICLES LOGIC
            =================================================== */
         let particlesActive = true;
         function toggleParticles() {
